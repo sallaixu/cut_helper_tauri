@@ -10,7 +10,12 @@
       <a-tab-pane key="imageList" tab="图片">
         <image-item></image-item>
       </a-tab-pane>
-      
+
+      <!-- 收藏列表标签页 -->
+      <a-tab-pane key="favoriteList" tab="收藏">
+        <favorite-page></favorite-page>
+      </a-tab-pane>
+
       <!-- 白板标签页 -->
       <a-tab-pane key="time" tab="白板">
         <text-edit></text-edit>
@@ -43,6 +48,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { PushpinOutlined } from '@ant-design/icons-vue'
+import FavoritePage from './FavoritePage.vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 // ==================== 响应式数据 ====================
