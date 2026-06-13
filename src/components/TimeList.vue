@@ -73,21 +73,34 @@
     </virt-list>
     
     <!-- 分组选择模态框 -->
-    <div style="overflow: scroll;">
-      <a-modal 
-        v-model:open="groupSelectOpen" 
-        title="添加分组" 
-        ok-text="确认" 
-        cancel-text="取消" 
-        @ok="addItemToGroup()"
-      >
-      <a-radio-group v-model:value="groupSelectId">
-          <div v-for="item, index in groupList" :key="item.id">
-          <a-radio :style="radioStyle" :value="item.id">{{ item.name }}</a-radio>
+    <a-modal
+      v-model:open="groupSelectOpen"
+      title="添加到分组"
+      ok-text="确认"
+      cancel-text="取消"
+      @ok="addItemToGroup()"
+    >
+      <a-radio-group v-model:value="groupSelectId" style="width: 100%;">
+        <div v-for="item in groupList" :key="item.id" style="margin-bottom: 8px;">
+          <a-radio :value="item.id">{{ item.name }}</a-radio>
         </div>
       </a-radio-group>
+
+      <a-divider v-if="groupList.length > 0" style="margin: 8px 0;" />
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <a-input
+          v-model:value="quickNewGroupName"
+          placeholder="新建分组名称"
+          size="small"
+          style="flex: 1;"
+          @pressEnter="handleQuickCreateGroup"
+        />
+        <a-button size="small" type="primary" @click="handleQuickCreateGroup">
+          <template #icon><PlusOutlined /></template>
+        </a-button>
+      </div>
     </a-modal>
-    </div>
     
     <!-- 详情模态框 -->
     <a-modal 
@@ -149,7 +162,7 @@
 <script setup>
 import { format, register } from 'timeago.js'
 import { ref, onMounted, computed, nextTick, watchEffect, watch } from 'vue'
-import { MoreOutlined, DeleteOutlined, EditOutlined, GroupOutlined, CopyOutlined } from '@ant-design/icons-vue'
+import { MoreOutlined, DeleteOutlined, EditOutlined, GroupOutlined, CopyOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { VirtList } from 'vue-virt-list'
 import { containsIgnoreCase } from '../../utils/StringUtil'
@@ -201,6 +214,7 @@ const groupList = ref([]) // 分组列表
 const groupSelectOpen = ref(false) // 分组选择模态框显示状态
 const groupSelectId = ref('') // 选中的分组ID
 const currCutItem = ref({}) // 当前操作的剪切项
+const quickNewGroupName = ref('') // 快捷新建分组名称
 
 // 详情相关数据
 const detailModalOpen = ref(false) // 详情模态框显示状态
@@ -303,16 +317,22 @@ const deleteDetailItem = () => {
 /**
  * 查询所有分组
  */
-const queryGroups = () => {
-  // 预留接口
+const queryGroups = async () => {
+  const result = await dbService.fetchGroups()
+  groupList.value = result || []
 }
 
 /**
  * 添加分组项目
  * @param {Object} groupItem - 分组项目数据
  */
-const addGroupItem = (groupItem) => {
-  // 预留接口
+const addGroupItem = async (groupItem) => {
+  const result = await dbService.addGroupItem(groupItem.groupId, groupItem.content, groupItem.title)
+  if (result) {
+    showMessageShort('已收藏到分组')
+  } else {
+    showMessageShort('收藏失败')
+  }
 }
 
 /**
@@ -367,10 +387,12 @@ window.addCutItemToList = update
  * 打开分组选择模态框
  * @param {Object} item - 项目数据
  */
-const openGroupSelect = (item) => {
-    groupSelectOpen.value = true
-    currCutItem.value = item
-    queryGroups()
+const openGroupSelect = async (item) => {
+  currCutItem.value = item
+  groupSelectId.value = ''
+  quickNewGroupName.value = ''
+  await queryGroups()
+  groupSelectOpen.value = true
 }
 
 /**
@@ -388,6 +410,20 @@ const addItemToGroup = () => {
     content: item.content,
     }
     addGroupItem(tmpGroupItem)
+}
+
+const handleQuickCreateGroup = async () => {
+  if (!quickNewGroupName.value.trim()) {
+    showMessageShort('分组名称不能为空')
+    return
+  }
+  const group = await dbService.addGroup(quickNewGroupName.value.trim())
+  if (group) {
+    await queryGroups()
+    groupSelectId.value = group.id
+    quickNewGroupName.value = ''
+    showMessageShort('分组创建成功')
+  }
 }
 
 // ==================== 工具函数 ====================
