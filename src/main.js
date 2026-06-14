@@ -6,6 +6,7 @@ import router from './router/router'
 import { start } from './cut_service'
 import {init_hotkey} from './hotkey'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import todoNotifier from './todo_notifier'
 
 window.addEventListener('error', (event) => {
     console.error('Uncaught error:', event.message);
@@ -21,6 +22,9 @@ async function main() {
         await init_hotkey();
         start();
     }
+
+    // 初始化待办通知调度器
+    todoNotifier.init();
     
     const app = createApp(App);
     app.use(router);
