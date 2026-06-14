@@ -16,6 +16,11 @@
         <favorite-page></favorite-page>
       </a-tab-pane>
 
+      <!-- 待办列表标签页 -->
+      <a-tab-pane key="todoList" tab="待办">
+        <todo-page></todo-page>
+      </a-tab-pane>
+
       <!-- 白板标签页 -->
       <a-tab-pane key="time" tab="白板">
         <text-edit></text-edit>
@@ -49,6 +54,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { PushpinOutlined } from '@ant-design/icons-vue'
 import FavoritePage from './FavoritePage.vue'
+import TodoPage from './TodoPage.vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 // ==================== 响应式数据 ====================
