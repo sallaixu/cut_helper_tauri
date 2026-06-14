@@ -13,6 +13,8 @@ declare module 'vue' {
     About: typeof import('./src/components/About.vue')['default']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
+    ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
+    ADatePicker: typeof import('ant-design-vue/es')['DatePicker']
     ADescriptions: typeof import('ant-design-vue/es')['Descriptions']
     ADescriptionsItem: typeof import('ant-design-vue/es')['DescriptionsItem']
     ADivider: typeof import('ant-design-vue/es')['Divider']
@@ -32,6 +34,7 @@ declare module 'vue' {
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
     ASelect: typeof import('ant-design-vue/es')['Select']
+    ASelectOption: typeof import('ant-design-vue/es')['SelectOption']
     ASkeleton: typeof import('ant-design-vue/es')['Skeleton']
     ASpace: typeof import('ant-design-vue/es')['Space']
     ASwitch: typeof import('ant-design-vue/es')['Switch']
@@ -55,5 +58,6 @@ declare module 'vue' {
     'TimeList copy': typeof import('./src/components/TimeList copy.vue')['default']
     TimeList_back1: typeof import('./src/components/TimeList_back1.vue')['default']
     TimePage: typeof import('./src/components/TimePage.vue')['default']
+    TodoPage: typeof import('./src/components/TodoPage.vue')['default']
   }
 }
