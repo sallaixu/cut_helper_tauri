@@ -265,6 +265,127 @@ export default {
     }
   },
 
+  // 待办相关方法
+  async addTodoItem(item) {
+    await this.init();
+    const id = uuidv4();
+    const createTime = new Date().toISOString();
+
+    // 如果有持续时长但没有结束时间，自动计算
+    let endTime = item.endTime || null;
+    if (!endTime && item.startTime && item.duration) {
+      endTime = new Date(new Date(item.startTime).getTime() + item.duration * 60000).toISOString();
+    }
+
+    try {
+      await db.execute(
+        'INSERT INTO TodoItems (id, title, note, status, startTime, endTime, duration, notifyStart, notifyEnd, notifyAdvance, createTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, item.title, item.note || '', item.status || 'pending', item.startTime || null, endTime, item.duration || null, item.notifyStart !== undefined ? (item.notifyStart ? 1 : 0) : 1, item.notifyEnd !== undefined ? (item.notifyEnd ? 1 : 0) : 1, item.notifyAdvance !== undefined ? item.notifyAdvance : 5, createTime]
+      );
+      return { id, title: item.title, note: item.note, status: item.status || 'pending', startTime: item.startTime, endTime, duration: item.duration, notifyStart: item.notifyStart !== undefined ? item.notifyStart : true, notifyEnd: item.notifyEnd !== undefined ? item.notifyEnd : true, notifyAdvance: item.notifyAdvance !== undefined ? item.notifyAdvance : 5, createTime };
+    } catch (error) {
+      console.error('Error adding todo item:', error);
+      return null;
+    }
+  },
+
+  async fetchTodoItems() {
+    await this.init();
+    try {
+      const result = await db.select('SELECT * FROM TodoItems ORDER BY startTime ASC');
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching todo items:', error);
+      return [];
+    }
+  },
+
+  async fetchTodoItemsByDate(dateStr) {
+    await this.init();
+    try {
+      // dateStr format: '2026-06-14', query todos whose startTime falls on that date
+      const nextDay = new Date(dateStr);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nextDayStr = nextDay.toISOString().split('T')[0];
+
+      const result = await db.select(
+        'SELECT * FROM TodoItems WHERE startTime >= ? AND startTime < ? ORDER BY startTime ASC',
+        [dateStr, nextDayStr]
+      );
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching todo items by date:', error);
+      return [];
+    }
+  },
+
+  async updateTodoItem(id, fields) {
+    await this.init();
+    try {
+      // If duration changed but endTime not provided, recalculate endTime
+      if (fields.duration !== undefined && fields.startTime && !fields.endTime) {
+        fields.endTime = new Date(new Date(fields.startTime).getTime() + fields.duration * 60000).toISOString();
+      }
+
+      const setClauses = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(fields)) {
+        if (key === 'id' || key === 'createTime') continue;
+        setClauses.push(`${key} = ?`);
+        values.push(value);
+      }
+
+      if (setClauses.length === 0) return true;
+
+      values.push(new Date().toISOString());
+      setClauses.push('updateTime = ?');
+
+      values.push(id);
+
+      await db.execute(
+        `UPDATE TodoItems SET ${setClauses.join(', ')} WHERE id = ?`,
+        values
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating todo item:', error);
+      return false;
+    }
+  },
+
+  async removeTodoItem(id) {
+    await this.init();
+    try {
+      await db.execute('DELETE FROM TodoItems WHERE id = ?', [id]);
+      return true;
+    } catch (error) {
+      console.error('Error removing todo item:', error);
+      return false;
+    }
+  },
+
+  async checkTodoConflict(startTime, endTime, excludeId = null) {
+    await this.init();
+    if (!startTime || !endTime) return [];
+
+    try {
+      let sql = 'SELECT * FROM TodoItems WHERE status != ? AND startTime IS NOT NULL AND endTime IS NOT NULL AND startTime < ? AND endTime > ?';
+      const params = ['done', endTime, startTime];
+
+      if (excludeId) {
+        sql += ' AND id != ?';
+        params.push(excludeId);
+      }
+
+      const result = await db.select(sql, params);
+      return result || [];
+    } catch (error) {
+      console.error('Error checking todo conflict:', error);
+      return [];
+    }
+  },
+
   // 获取当前配置
   getCurrentConfig() {
     return { ...config };

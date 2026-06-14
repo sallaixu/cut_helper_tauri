@@ -57,6 +57,29 @@ pub fn run() {
             "#,
             kind: MigrationKind::Up,
         },
+        // 版本5 - 添加待办事项表
+        Migration {
+            version: 5,
+            description: "add_todo_items_table",
+            sql: r#"
+            CREATE TABLE IF NOT EXISTS "TodoItems" (
+                "id" UUID NOT NULL,
+                "title" VARCHAR(255) NOT NULL,
+                "note" TEXT,
+                "status" VARCHAR(20) NOT NULL DEFAULT 'pending',
+                "startTime" DATETIME,
+                "endTime" DATETIME,
+                "duration" INTEGER,
+                "notifyStart" BOOLEAN NOT NULL DEFAULT 1,
+                "notifyEnd" BOOLEAN NOT NULL DEFAULT 1,
+                "notifyAdvance" INTEGER NOT NULL DEFAULT 5,
+                "createTime" DATETIME NOT NULL,
+                "updateTime" DATETIME,
+                PRIMARY KEY ("id")
+            );
+            "#,
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
