@@ -21,6 +21,11 @@
         <todo-page></todo-page>
       </a-tab-pane>
 
+      <!-- 专注时间标签页 -->
+      <a-tab-pane key="focusList" :tab="focusTabTitle">
+        <focus-page></focus-page>
+      </a-tab-pane>
+
       <!-- 白板标签页 -->
       <a-tab-pane key="time" tab="白板">
         <text-edit></text-edit>
@@ -51,10 +56,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { PushpinOutlined } from '@ant-design/icons-vue'
 import FavoritePage from './FavoritePage.vue'
 import TodoPage from './TodoPage.vue'
+import FocusPage from './FocusPage.vue'
+import focusTimer from '../focus_timer'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 // ==================== 响应式数据 ====================
@@ -67,6 +74,14 @@ const searchInputRef = ref(null) // 搜索框引用
 const appConfig = ref({
   top: true // 窗口置顶状态
 })
+
+const focusTabTitle = computed(() => {
+  if (focusTimer.state.phase === 'idle') return '专注';
+  const m = Math.floor(focusTimer.state.remainingSeconds / 60);
+  const s = focusTimer.state.remainingSeconds % 60;
+  const time = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `专注 ${time}`;
+});
 
 // ==================== 窗口管理 ====================
 /**
