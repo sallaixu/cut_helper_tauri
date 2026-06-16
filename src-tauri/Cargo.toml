@@ -1,6 +1,6 @@
 [package]
 name = "cut-helper"
-version = "1.0.0"
+version = "1.2.2"
 description = "剪切板助手 - 让每一次C,V变得有意义"
 authors = ["sallai <sallai@aliyun.com>"]
 edition = "2021"
