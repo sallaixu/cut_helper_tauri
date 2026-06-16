@@ -22,3 +22,17 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Design docs and plans (superpowers skill output)
+docs/superpowers/
+
+# Build logs
+build_log.txt
+
+# Feature summaries and analysis notes
+RUST_IMAGE_OPTIMIZATION.md
+performance_analysis.md
+图片处理迁移到Rust总结.md
+自启动功能实现总结.md
+配置功能验证说明.md
+配置系统实现总结.md
