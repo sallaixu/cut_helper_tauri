@@ -1,21 +1,18 @@
 import { reactive } from 'vue';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 
+const DEFAULTS = { focusMinutes: 25, restMinutes: 5, mode: 'loop' };
+
 // Reactive state
 const state = reactive({
   phase: 'idle',        // 'idle' | 'focusing' | 'resting' | 'paused'
   remainingSeconds: 0,
   currentRound: 0,      // completed focus rounds
   totalFocusSeconds: 0, // cumulative focus seconds this session
-  config: {
-    focusMinutes: 25,
-    restMinutes: 5,
-    mode: 'loop',        // 'once' | 'loop'
-  },
+  config: { ...DEFAULTS },
 });
 
 let intervalId = null;
-let pausedPhase = null;  // phase before pause ('focusing')
 
 // ==================== Notification helpers ====================
 
@@ -35,7 +32,10 @@ async function ensurePermission() {
 
 function notify(title, body) {
   try {
-    sendNotification({ title, body });
+    const result = sendNotification({ title, body });
+    if (result && typeof result.catch === 'function') {
+      result.catch(error => console.error('发送通知失败:', error));
+    }
   } catch (error) {
     console.error('发送通知失败:', error);
   }
@@ -66,6 +66,12 @@ function stopInterval() {
   }
 }
 
+function beginFocusRound() {
+  state.phase = 'focusing';
+  state.remainingSeconds = state.config.focusMinutes * 60;
+  startInterval();
+}
+
 function onPhaseEnd() {
   stopInterval();
 
@@ -89,9 +95,7 @@ function onPhaseEnd() {
   } else if (state.phase === 'resting') {
     // Rest completed: start next focus round
     notify('🍅 休息结束', '准备开始新一轮专注！');
-    state.phase = 'focusing';
-    state.remainingSeconds = state.config.focusMinutes * 60;
-    startInterval();
+    beginFocusRound();
   }
 }
 
@@ -101,53 +105,66 @@ function resetState() {
   state.remainingSeconds = 0;
   state.currentRound = 0;
   state.totalFocusSeconds = 0;
-  pausedPhase = null;
 }
 
 // ==================== Public API ====================
 
+/**
+ * 开始专注计时
+ * @param {Object} config - 配置
+ * @param {number} config.focusMinutes - 专注时长（分钟）
+ * @param {number} config.restMinutes - 休息时长（分钟）
+ * @param {string} config.mode - 模式: 'once' | 'loop'
+ */
 async function start(config) {
   await ensurePermission();
 
-  state.config.focusMinutes = config.focusMinutes || 25;
-  state.config.restMinutes = config.restMinutes || 5;
-  state.config.mode = config.mode || 'loop';
+  state.config.focusMinutes = config.focusMinutes || DEFAULTS.focusMinutes;
+  state.config.restMinutes = config.restMinutes || DEFAULTS.restMinutes;
+  state.config.mode = config.mode || DEFAULTS.mode;
 
   state.phase = 'focusing';
   state.remainingSeconds = state.config.focusMinutes * 60;
   state.currentRound = 0;
   state.totalFocusSeconds = 0;
-  pausedPhase = null;
 
   notify('🍅 专注开始', '开始专注，加油！');
   startInterval();
 }
 
+/**
+ * 暂停专注（仅 focusing 状态可用）
+ */
 function pause() {
   if (state.phase !== 'focusing') return;
   stopInterval();
-  pausedPhase = 'focusing';
   state.phase = 'paused';
 }
 
+/**
+ * 继续专注
+ */
 function resume() {
   if (state.phase !== 'paused') return;
-  state.phase = pausedPhase || 'focusing';
-  pausedPhase = null;
+  state.phase = 'focusing';
   startInterval();
 }
 
+/**
+ * 停止专注，重置所有状态
+ */
 function stop() {
   resetState();
 }
 
+/**
+ * 跳过休息，直接进入下一轮专注
+ */
 function skipRest() {
   if (state.phase !== 'resting') return;
   stopInterval();
   notify('🍅 休息结束', '准备开始新一轮专注！');
-  state.phase = 'focusing';
-  state.remainingSeconds = state.config.focusMinutes * 60;
-  startInterval();
+  beginFocusRound();
 }
 
 export default {
