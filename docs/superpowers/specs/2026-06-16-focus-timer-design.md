@@ -142,7 +142,7 @@ Uses `@tauri-apps/plugin-notification` with `sendNotification()`, same as `todo_
 
 ### Interaction Details
 
-- **Pause**: Only available during `focusing`. Button toggles to "继续" when paused.
+- **Pause**: Only available during `focusing` state. Rest periods cannot be paused (rest is meant to be taken as-is). Button toggles to "继续" when paused.
 - **Skip rest**: Available during `resting` in loop mode. Starts next focus round immediately.
 - **Stop**: Shows `Modal.confirm` before stopping. In loop mode, displays total focus time in confirmation.
 - **Rest duration**: Only shown when mode is "循环专注". Hidden for single mode (no rest needed after single focus).
