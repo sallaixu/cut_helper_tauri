@@ -1,5 +1,5 @@
 [package]
-name = "剪切板助手"
+name = "cut-helper"
 version = "1.0.0"
 description = "剪切板助手 - 让每一次C,V变得有意义"
 authors = ["sallai <sallai@aliyun.com>"]

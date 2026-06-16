@@ -41,6 +41,25 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Sync version from tauri.conf.json to package.json and Cargo.toml
+        shell: bash
+        run: |
+          # 从 tauri.conf.json 读取版本号
+          VERSION=$(node -e "console.log(require('./src-tauri/tauri.conf.json').version)")
+
+          # 同步到 package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '${VERSION}';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+          # 同步到 Cargo.toml
+          sed -i 's/^version = ".*"/version = "'${VERSION}'"/' src-tauri/Cargo.toml
+
+          echo "Synced version: ${VERSION}"
+
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -48,6 +67,5 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "剪贴小助手 v__VERSION__"
-          releaseBody: ${{ github.event.head_commit.message }}
           releaseDraft: false
           prerelease: false
