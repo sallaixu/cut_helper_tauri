@@ -122,6 +122,7 @@ pub fn run() {
             commands::image_processor::process_clipboard_image,
             commands::image_processor::calculate_image_hash,
             commands::image_processor::monitor_and_process_clipboard_image,
+            commands::keyboard_sim::type_text,
             config::get_config,
             config::save_config,
             config::set_auto_start,
