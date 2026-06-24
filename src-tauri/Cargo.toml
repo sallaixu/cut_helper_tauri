@@ -41,6 +41,21 @@ uuid = { version = "1.6", features = ["v4"] }
 chrono = "0.4"
 lazy_static = "1.4"
 
+# 语音识别
+sherpa-onnx = { version = "1.13", features = ["static"] }
+cpal = "0.15"
+
+# HTTP 下载模型
+reqwest = { version = "0.12", features = ["stream"] }
+futures-util = "0.3"
+
+# Windows API（键盘模拟）
+windows = { version = "0.58", features = [
+    "Win32_System_Threading",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"
 
