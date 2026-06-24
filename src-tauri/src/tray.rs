@@ -69,3 +69,18 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
     Ok(())
 }
 
+/// 切换托盘图标以表示录音状态
+pub fn set_recording_icon<R: Runtime>(app: &tauri::AppHandle<R>, is_recording: bool) {
+    if let Some(_tray) = app.tray_by_id("tray") {
+        if is_recording {
+            // 录音中：使用系统通知
+            use tauri_plugin_notification::NotificationExt;
+            let _ = app.notification()
+                .builder()
+                .title("剪切板助手")
+                .body("正在录音，松开快捷键结束")
+                .show();
+        }
+    }
+}
+

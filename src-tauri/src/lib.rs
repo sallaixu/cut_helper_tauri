@@ -2,6 +2,7 @@ pub mod commands;
 pub mod utils;
 pub mod config;
 use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri::Listener;
 mod tray;
 
 
@@ -114,6 +115,17 @@ pub fn run() {
                 }
             }
             }
+
+            // 监听录音状态事件，更新托盘通知
+            let tray_handle = app.handle().clone();
+            app.listen("recording-state", move |event| {
+                if let Ok(data) = serde_json::from_str::<serde_json::Value>(event.payload()) {
+                    if let Some(is_recording) = data.get("is_recording").and_then(|v| v.as_bool()) {
+                        tray::set_recording_icon(&tray_handle, is_recording);
+                    }
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
