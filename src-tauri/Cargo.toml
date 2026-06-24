@@ -42,7 +42,7 @@ chrono = "0.4"
 lazy_static = "1.4"
 
 # 语音识别
-sherpa-onnx = { version = "1.13", features = ["static"] }
+sherpa-onnx = { version = "1.13", default-features = false, features = ["shared"] }
 cpal = "0.15"
 
 # HTTP 下载模型
