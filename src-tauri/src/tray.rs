@@ -70,6 +70,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
 }
 
 /// 切换托盘图标以表示录音状态
+#[cfg(target_os = "windows")]
 pub fn set_recording_icon<R: Runtime>(app: &tauri::AppHandle<R>, is_recording: bool) {
     if let Some(_tray) = app.tray_by_id("tray") {
         if is_recording {
@@ -82,5 +83,10 @@ pub fn set_recording_icon<R: Runtime>(app: &tauri::AppHandle<R>, is_recording: b
                 .show();
         }
     }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn set_recording_icon<R: Runtime>(_app: &tauri::AppHandle<R>, _is_recording: bool) {
+    // 非 Windows 平台暂不支持语音输入
 }
 

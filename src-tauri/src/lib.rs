@@ -117,14 +117,17 @@ pub fn run() {
             }
 
             // 监听录音状态事件，更新托盘通知
-            let tray_handle = app.handle().clone();
-            app.listen("recording-state", move |event| {
-                if let Ok(data) = serde_json::from_str::<serde_json::Value>(event.payload()) {
-                    if let Some(is_recording) = data.get("is_recording").and_then(|v| v.as_bool()) {
-                        tray::set_recording_icon(&tray_handle, is_recording);
+            #[cfg(target_os = "windows")]
+            {
+                let tray_handle = app.handle().clone();
+                app.listen("recording-state", move |event| {
+                    if let Ok(data) = serde_json::from_str::<serde_json::Value>(event.payload()) {
+                        if let Some(is_recording) = data.get("is_recording").and_then(|v| v.as_bool()) {
+                            tray::set_recording_icon(&tray_handle, is_recording);
+                        }
                     }
-                }
-            });
+                });
+            }
 
             Ok(())
         })
@@ -134,13 +137,21 @@ pub fn run() {
             commands::image_processor::process_clipboard_image,
             commands::image_processor::calculate_image_hash,
             commands::image_processor::monitor_and_process_clipboard_image,
+            #[cfg(target_os = "windows")]
             commands::keyboard_sim::type_text,
+            #[cfg(target_os = "windows")]
             commands::model_manager::list_speech_models,
+            #[cfg(target_os = "windows")]
             commands::model_manager::download_speech_model,
+            #[cfg(target_os = "windows")]
             commands::model_manager::delete_speech_model,
+            #[cfg(target_os = "windows")]
             commands::speech::init_speech_model,
+            #[cfg(target_os = "windows")]
             commands::speech::start_recording,
+            #[cfg(target_os = "windows")]
             commands::speech::stop_recording,
+            #[cfg(target_os = "windows")]
             commands::speech::get_speech_status,
             config::get_config,
             config::save_config,
